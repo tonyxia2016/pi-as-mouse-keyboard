@@ -66,14 +66,13 @@ class gpioController:
         else:
             if self.wheelDown == False:#如果从抬起到按下
                 self.setBtn(self.wheelPingMap[4], True)
-                time.sleep(1 / 1)
+                time.sleep(1 / 240)
                 self.setBtn(self.wheelPingMap[4], False)
                 self.setBtn(self.wheelPingMap[mapVal],True)
                 self.wheelNow = self.wheelPingMap[mapVal]
                 self.wheelDown = True
             else:#从一个方向到另一个方向
                 self.setBtn(self.wheelNow, False)
-                # time.sleep(1 / 1)
                 self.setBtn(self.wheelPingMap[mapVal], True)
                 self.wheelNow = self.wheelPingMap[mapVal]
 
@@ -126,16 +125,17 @@ if __name__ == "__main__":
     while True:
         for event in pygame.event.get():
             if event.type == QUIT:
-                simulategpio.stop()
+                # simulategpio.stop()
                 exit()
             if event.type == KEYDOWN:
                 if event.key == K_ESCAPE:
-                    simulategpio.stop()
+                    # simulategpio.stop()
                     exit()
                 data = json.dumps({
                     "type": "key",
                     "data": [event.scancode, True]
                 })
+                print(data)
                 simulategpio.putEvent(event.scancode.to_bytes(1, byteorder="big", signed=False), True)
             elif event.type == KEYUP:
                 # print(event.scancode)
@@ -143,6 +143,7 @@ if __name__ == "__main__":
                     "type": "key",
                     "data": [event.scancode, False]
                 })
+                print(data)
                 simulategpio.putEvent(event.scancode.to_bytes(1, byteorder="big", signed=False), False)
 
             elif event.type == pygame.MOUSEBUTTONDOWN:
