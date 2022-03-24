@@ -34,15 +34,18 @@ def makeCircle(r):
         offsets.append((x,y))
     return offsets
 
-pt = makeCircle(500)
-
-
-# while True:
 mouse.btn_press(MOUSE_BTN_LEFT)
-for (x,y) in pt:
-    mouse.report(x=x,y=y)
+for (x,y) in makeCircle(500):
+    # mouse.report(x=x,y=y)
+    mouse.move(x=x,y=y)
     time.sleep(0.001)
 mouse.btn_release(MOUSE_BTN_LEFT)
+
+for key in [KEY_A,KEY_B,KEY_C,KEY_D]:
+    kb.key_press(key)
+    time.sleep(0.1)
+    kb.key_release(key)
+    time.sleep(0.1)
 
 
 
