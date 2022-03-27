@@ -8,6 +8,8 @@ import time
 from concurrent.futures import thread
 from queue import Queue
 
+import RPi.GPIO as GPIO
+
 from utils.defines import *
 from utils.interface import *
 
@@ -100,6 +102,14 @@ class recver:
 
 class gpioController:
     def __init__(self) -> None:
+        GPIO.setmode(GPIO.BCM)          ## 使用BCM引脚编号，此外还有 GPIO.BOARD
+        GPIO.setwarnings(False)
+        GPIO.setup(17, GPIO.OUT)
+        GPIO.output(17, GPIO.LOW) 
+
+        GPIO.setup(18, GPIO.OUT)
+        GPIO.output(18, GPIO.LOW) 
+
         self.wasd = {
             KEY_W: False,
             KEY_A: False,
@@ -108,18 +118,11 @@ class gpioController:
         }
         self.wheelPingMap = ["wheel_pin_0","wheel_pin_1", "wheel_pin_2", "wheel_pin_3",
                              "wheel_pin_4", "wheel_pin_5", "wheel_pin_6", "wheel_pin_7", "wheel_pin_8"]
-        '''
-        6   7   8
-        3   4   5
-        0   1   2
-        '''
         self.wheelNow = self.wheelPingMap[4]
         self.key_map_wasd = [KEY_W, KEY_A, KEY_S, KEY_D]
         self.key_map_normal = {
-            MOUSE_BTN_LEFT: "pin_10",
-            KEY_1: "pin_11",
-            KEY_2: "pin_12",
-            KEY_3: "pin_13",
+            KEY_1: 17,
+            KEY_2: 18,
         }
         self.wheelDown = False
 
@@ -129,9 +132,11 @@ class gpioController:
 
     def stop(self):
         self.running = False
+        self.putEvent(b'stop', False)
 
     def setBtn(self, pin, connect):
         print(f"set {pin} to {connect}")
+        GPIO.output(pin, GPIO.HIGH if connect else GPIO.LOW)
 
     def onWASD(self, keycode: bytes, down: bool):
         self.wasd[keycode] = down
@@ -162,11 +167,15 @@ class gpioController:
     def mainLoop(self):
         while self.running:
             keycode,down = self.eventqueue.get()
-            self.handelKeyEvent(keycode, down)    
-        #clear all
+            if keycode == b'stop' and down == False:
+                break
+            else:
+                self.handelKeyEvent(keycode, down)    
 
 
     def handelKeyEvent(self, keycode: bytes, down: bool):
+        print("handelKeyEvent", keycode, down)
+        
         if keycode in self.key_map_wasd:
             self.onWASD(keycode, down)
         elif keycode in self.key_map_normal:
@@ -174,7 +183,6 @@ class gpioController:
             self.setBtn(pin, down)
 
     def putEvent(self, keycode: bytes, down: bool):
-        print(f"put {keycode} {down}")
         self.eventqueue.put((keycode, down))
 
 
